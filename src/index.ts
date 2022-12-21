@@ -48,7 +48,7 @@ class VendingMachine {
           slot: "A4",
           name: "Pepsi",
           quantity: 10,
-          price: 0.50,
+          price: 0.5,
         },
       ],
       A5: [
@@ -61,7 +61,7 @@ class VendingMachine {
       ],
       A6: [
         {
-          slot: "A5",
+          slot: "A6",
           name: "Cocacola",
           quantity: 10,
           price: 0.25,
@@ -170,22 +170,39 @@ class VendingMachine {
     if (remainingChange == 0) return [];
 
     if (this.coins.includes(remainingChange)) {
-      changeIndex.push(this.coins.indexOf(remainingChange));
+      let currentIndex = this.coins.indexOf(remainingChange);
+      //if change index includes current index increase current by one to avoid adding duplicate index 
+      let removeIndex = changeIndex.includes(currentIndex)
+        ? currentIndex + 1
+        : currentIndex;
+
+      changeIndex.push(removeIndex);
       userChange.push(remainingChange);
 
       //if change calculation is complete debit change from machine
-      if (remainingChange === Math.min(...userChange)) {
-        this.coins = this.coins.filter((value, i) => !changeIndex.includes(i))
-      }
+      //if (remainingChange === Math.min(...userChange)) {
+        this.coins = this.coins.filter((value, i) => !changeIndex.includes(i));
+      //}
+
       return { status: "Successful", userChange };
     }
 
     for (let index = 0; index < this.coins.length; index++) {
       if (this.coins[index] < remainingChange) {
+        let currentIndex = this.coins.indexOf(this.coins[index]);
+        // if change index includes currentIndex increment by one
+        let removeIndex = changeIndex.includes(currentIndex)
+          ? currentIndex + 1
+          : currentIndex;
+
+        changeIndex.push(removeIndex);
         userChange.push(this.coins[index]);
-        changeIndex.push(this.coins.indexOf(this.coins[index]));
-        
-        return this.giveChange(remainingChange - this.coins[index], userChange, changeIndex);
+
+        return this.giveChange(
+          remainingChange - this.coins[index],
+          userChange,
+          changeIndex
+        );
       }
     }
   }
@@ -215,10 +232,7 @@ class VendingMachine {
             //update product quantity
             individualProduct.quantity--;
             //give change
-            result = this.giveChange(
-              this.totalAmount(money) - individualProduct.price,
-              [], []
-            );
+            result = this.giveChange(this.totalAmount(money) - individualProduct.price, [], []);
           } else {
             result = `${individualProduct.name} is out of stock`;
           }
